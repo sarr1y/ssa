@@ -1,0 +1,165 @@
+<div class="container py-4">
+  <!-- Навигация назад -->
+  <div class="mb-4">
+    <a routerLink="/" class="btn btn-outline-secondary rounded-pill btn-sm px-3 d-inline-flex align-items-center gap-1 shadow-sm">
+      <i class="bi bi-arrow-left"></i> Назад к списку
+    </a>
+  </div>
+
+  <!-- 4 состояния: loading, error, empty, data -->
+  @if (state() === 'loading') {
+    <div class="text-center py-5 my-5">
+      <div class="spinner-border text-primary mb-3" role="status" style="width: 3.5rem; height: 3.5rem;">
+        <span class="visually-hidden">Загрузка рецепта...</span>
+      </div>
+      <h5 class="text-secondary fw-normal">Загружаем информацию о рецепте...</h5>
+    </div>
+  } @else if (state() === 'error') {
+    <div class="alert alert-danger rounded-4 p-4 shadow-sm border-0 my-4 text-center">
+      <i class="bi bi-wifi-off display-4 text-danger d-block mb-3"></i>
+      <h4 class="alert-heading fw-bold">Ошибка соединения</h4>
+      <p class="text-muted mb-4">{{ errorMessage() }}</p>
+      <button (click)="ngOnInit()" class="btn btn-danger rounded-pill px-4">
+        <i class="bi bi-arrow-clockwise me-1"></i> Повторить попытку
+      </button>
+    </div>
+  } @else if (state() === 'empty' || !recipe()) {
+    <div class="text-center py-5 my-5 bg-white rounded-4 shadow-sm p-5 border border-dashed">
+      <i class="bi bi-question-circle display-3 text-secondary opacity-50 mb-3 d-block"></i>
+      <h3 class="fw-bold text-dark mb-2">Рецепт не найден</h3>
+      <p class="text-muted mb-4 col-md-6 mx-auto">
+        Запрошенный рецепт не существует либо был удален автором.
+      </p>
+      <a routerLink="/" class="btn btn-primary rounded-pill px-4">
+        <i class="bi bi-house-door me-1"></i> Вернуться на главную
+      </a>
+    </div>
+  } @else {
+    <div class="card shadow-sm border-0 rounded-4 overflow-hidden bg-white mb-4">
+      <div class="row g-0">
+        <!-- Левая колонка: Фото блюда и кнопка загрузки фото автором -->
+        <div class="col-lg-5 position-relative bg-light d-flex flex-column" style="min-height: 380px;">
+          <img [src]="recipeService.getImageUrl(recipe()!.imageUrl)"
+               [alt]="recipe()!.title"
+               class="w-100 h-100 object-fit-cover flex-grow-1"
+               style="max-height: 480px;">
+
+          <span class="badge bg-primary bg-gradient position-absolute top-0 start-0 m-3 px-3 py-2 rounded-pill shadow">
+            {{ recipe()!.cuisineName }}
+          </span>
+
+          <!-- Блок загрузки файла: виден ТОЛЬКО автору записи -->
+          @if (isAuthor()) {
+            <div class="p-3 bg-white border-top">
+              <label class="form-label fw-bold small text-dark mb-1">
+                <i class="bi bi-camera-fill text-primary me-1"></i> Загрузить новое фото (до 5 МБ):
+              </label>
+              <div class="input-group input-group-sm">
+                <input type="file"
+                       class="form-control rounded-pill-start"
+                       accept=".jpg,.jpeg,.png,.webp"
+                       [disabled]="isUploading()"
+                       (change)="onFileSelected($event)">
+              </div>
+              <div class="form-text small text-muted">Форматы: JPG, PNG, WEBP (сохраняется с именем Guid)</div>
+
+              @if (isUploading()) {
+                <div class="d-flex align-items-center gap-2 mt-2 text-primary small">
+                  <div class="spinner-border spinner-border-sm" role="status"></div>
+                  <span>Сохранение файла на сервере...</span>
+                </div>
+              }
+
+              @if (uploadMessage()) {
+                <div class="alert alert-success py-1 px-2 mt-2 mb-0 small rounded-3">
+                  <i class="bi bi-check-circle me-1"></i> {{ uploadMessage() }}
+                </div>
+              }
+
+              @if (uploadError()) {
+                <div class="alert alert-danger py-1 px-2 mt-2 mb-0 small rounded-3">
+                  <i class="bi bi-exclamation-circle me-1"></i> {{ uploadError() }}
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Правая колонка: Заголовок, авторство, кнопки действий автора -->
+        <div class="col-lg-7 p-4 p-md-5 d-flex flex-column">
+          <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+            <h1 class="h2 fw-bold text-dark mb-0">{{ recipe()!.title }}</h1>
+
+            <!-- Кнопки «Редактировать» и «Удалить»: видны ТОЛЬКО автору записи -->
+            @if (isAuthor()) {
+              <div class="d-flex gap-2">
+                <a [routerLink]="['/recipes', recipe()!.id, 'edit']"
+                   class="btn btn-outline-secondary rounded-pill btn-sm px-3 shadow-sm">
+                  <i class="bi bi-pencil-fill me-1"></i> Редактировать
+                </a>
+                <button (click)="deleteRecipe()"
+                        class="btn btn-outline-danger rounded-pill btn-sm px-3 shadow-sm">
+                  <i class="bi bi-trash-fill me-1"></i> Удалить
+                </button>
+              </div>
+            }
+          </div>
+
+          <!-- Метаданные рецепта -->
+          <div class="d-flex flex-wrap gap-4 text-secondary small mb-4 pb-3 border-bottom">
+            <span class="d-flex align-items-center gap-2">
+              <i class="bi bi-clock-history fs-5 text-primary"></i>
+              <span><strong>{{ formatTime(recipe()!.cookingTimeMinutes) }}</strong></span>
+            </span>
+            <span class="d-flex align-items-center gap-2">
+              <i class="bi bi-people-fill fs-5 text-primary"></i>
+              <span><strong>{{ recipe()!.servings }}</strong> порций</span>
+            </span>
+            <span class="d-flex align-items-center gap-2">
+              <i class="bi bi-person-circle fs-5 text-primary"></i>
+              <span>Автор: <strong>{{ recipe()!.authorUsername }}</strong></span>
+            </span>
+          </div>
+
+          <!-- Ингредиенты (Интерактивный чек-лист) -->
+          <div class="mb-4">
+            <h5 class="fw-bold text-dark mb-3">
+              <i class="bi bi-basket2-fill text-success me-2"></i>Ингредиенты:
+            </h5>
+            <ul class="list-group list-group-flush">
+              @for (ingredient of getIngredientsList(); track $index) {
+                <li class="list-group-item px-0 py-2 d-flex align-items-center gap-2 border-0"
+                    (click)="toggleIngredient($index)"
+                    style="cursor: pointer;">
+                  <input class="form-check-input mt-0"
+                         type="checkbox"
+                         [checked]="checkedIngredients()[$index]"
+                         (click)="$event.stopPropagation()"
+                         (change)="toggleIngredient($index)">
+                  <span [class.text-decoration-line-through]="checkedIngredients()[$index]"
+                        [class.text-muted]="checkedIngredients()[$index]">
+                    {{ ingredient }}
+                  </span>
+                </li>
+              }
+            </ul>
+          </div>
+
+          <!-- Пошаговые инструкции приготовления -->
+          <div>
+            <h5 class="fw-bold text-dark mb-3">
+              <i class="bi bi-list-ol text-primary me-2"></i>Инструкция приготовления:
+            </h5>
+            <div class="steps-container">
+              @for (step of getStepsList(); track $index) {
+                <div class="p-3 mb-2 rounded-3 bg-light border-start border-4 border-primary">
+                  {{ step }}
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

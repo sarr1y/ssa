@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="100%" height="100%">
+  <defs>
+    <linearGradient id="foodGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff1eb" />
+      <stop offset="100%" stop-color="#ace0f9" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.1" />
+    </filter>
+  </defs>
+  
+  <rect width="100%" height="100%" fill="url(#foodGrad)" />
+  
+  <!-- Большая тарелка с клошем / блюдом -->
+  <g transform="translate(400, 250)" filter="url(#shadow)">
+    <!-- Тарелка основа -->
+    <ellipse cx="0" cy="80" rx="190" ry="40" fill="#cbd5e1" opacity="0.6"/>
+    <ellipse cx="0" cy="70" rx="180" ry="35" fill="#f8fafc" stroke="#e2e8f0" stroke-width="6"/>
+    <ellipse cx="0" cy="68" rx="130" ry="22" fill="#e2e8f0" opacity="0.8"/>
+    
+    <!-- Клош (крышка блюда) -->
+    <path d="M -120 60 C -120 -50 120 -50 120 60 Z" fill="#e25822" opacity="0.9" />
+    <!-- Блик на клоше -->
+    <path d="M -80 40 C -80 -20 -40 -35 -10 -40 C -30 -30 -60 10 -60 40 Z" fill="#ffffff" opacity="0.3" />
+    <!-- Ручка клоша -->
+    <circle cx="0" cy="-60" r="14" fill="#c44716" />
+    <circle cx="0" cy="-60" r="7" fill="#ffffff" opacity="0.5" />
+    
+    <!-- Пар от блюда -->
+    <path d="M -40 -90 Q -25 -115 -45 -135 Q -65 -155 -50 -175" stroke="#e25822" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.5"/>
+    <path d="M 0 -85 Q 15 -110 -5 -135 Q -25 -160 0 -185" stroke="#f59e0b" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.6"/>
+    <path d="M 40 -90 Q 55 -115 35 -135 Q 15 -155 30 -175" stroke="#e25822" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.5"/>
+  </g>
+  
+  <!-- Текст -->
+  <text x="400" y="440" font-family="'Outfit', sans-serif" font-size="22" font-weight="600" fill="#64748b" text-anchor="middle" letter-spacing="1">
+    КУЛИНАРНЫЙ ШЕДЕВР
+  </text>
+</svg>

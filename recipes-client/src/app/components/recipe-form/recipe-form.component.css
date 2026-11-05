@@ -1,0 +1,11 @@
+.upload-dropzone {
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+  border-style: dashed;
+  transition: all 0.2s ease-in-out;
+}
+
+.upload-dropzone:hover {
+  background-color: #f1f5f9;
+  border-color: var(--primary-color);
+}

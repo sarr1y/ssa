@@ -1,0 +1,104 @@
+<div class="container py-4">
+  <!-- Заголовок страницы -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+    <div>
+      <h1 class="display-6 fw-bold mb-1 text-dark">
+        <i class="bi bi-journal-richtext text-primary me-2"></i>Каталог кулинарных рецептов
+      </h1>
+      <p class="text-secondary mb-0">
+        Исследуйте аутентичные блюда национальных кухонь мира
+      </p>
+    </div>
+
+    @if (authService.isLoggedIn()) {
+      <a routerLink="/recipes/new" class="btn btn-primary rounded-pill px-4 py-2 shadow-sm d-flex align-items-center gap-2">
+        <i class="bi bi-plus-circle-fill"></i>
+        <span>Добавить рецепт</span>
+      </a>
+    } @else {
+      <a routerLink="/login" class="btn btn-outline-primary rounded-pill px-4 py-2 d-flex align-items-center gap-2">
+        <i class="bi bi-box-arrow-in-right"></i>
+        <span>Войти для добавления</span>
+      </a>
+    }
+  </div>
+
+  <!-- Компонент фильтрации и поиска (input/output) -->
+  <app-recipe-filter
+    [cuisines]="cuisines()"
+    (filterChange)="onFilterChange($event)"
+    (resetFilters)="onResetFilters()">
+  </app-recipe-filter>
+
+  <!-- 4 состояния экрана: loading, error, empty, data -->
+  @if (state() === 'loading') {
+    <div class="text-center py-5 my-5">
+      <div class="spinner-border text-primary mb-3" role="status" style="width: 3.5rem; height: 3.5rem;">
+        <span class="visually-hidden">Загрузка...</span>
+      </div>
+      <h5 class="text-secondary fw-normal">Загружаем изысканные рецепты...</h5>
+    </div>
+  } @else if (state() === 'error') {
+    <div class="alert alert-danger rounded-4 p-4 shadow-sm border-0 my-4 text-center">
+      <i class="bi bi-exclamation-triangle-fill display-4 text-danger d-block mb-3"></i>
+      <h4 class="alert-heading fw-bold">Не удалось загрузить рецепты</h4>
+      <p class="text-muted mb-4">{{ errorMessage() }}</p>
+      <button (click)="loadRecipes()" class="btn btn-danger rounded-pill px-4">
+        <i class="bi bi-arrow-clockwise me-1"></i> Попробовать снова
+      </button>
+    </div>
+  } @else if (state() === 'empty') {
+    <div class="text-center py-5 my-5 bg-white rounded-4 shadow-sm p-5 border border-dashed">
+      <i class="bi bi-search display-3 text-secondary opacity-50 mb-3 d-block"></i>
+      <h3 class="fw-bold text-dark mb-2">Рецепты не найдены</h3>
+      <p class="text-muted mb-4 col-md-6 mx-auto">
+        По выбранным критериям ничего не удалось найти. Попробуйте изменить параметры поиска или сбросить фильтры.
+      </p>
+      <button (click)="onResetFilters()" class="btn btn-outline-primary rounded-pill px-4">
+        <i class="bi bi-arrow-repeat me-1"></i> Сбросить фильтры
+      </button>
+    </div>
+  } @else {
+    <!-- Инфо-панель счетчика -->
+    <div class="d-flex justify-content-between align-items-center mb-3 text-muted small px-1">
+      <span>Найдено рецептов: <strong>{{ total() }}</strong></span>
+      <span>Страница {{ page() }} из {{ totalPages() }}</span>
+    </div>
+
+    <!-- Сетка карточек рецептов -->
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+      @for (recipe of recipes(); track recipe.id) {
+        <div class="col">
+          <app-recipe-card
+            [recipe]="recipe"
+            [isAuthor]="isRecipeAuthor(recipe.authorId)"
+            (delete)="onDeleteRecipe($event)">
+          </app-recipe-card>
+        </div>
+      }
+    </div>
+
+    <!-- Пагинация: page, pageSize, total; кнопки «Назад» и «Вперёд» -->
+    @if (totalPages() > 1) {
+      <div class="d-flex justify-content-center align-items-center gap-2 mt-5 mb-3">
+        <button
+          (click)="prevPage()"
+          [disabled]="!hasPrevPage()"
+          class="btn btn-outline-secondary rounded-pill px-4 py-2 d-flex align-items-center gap-1 shadow-sm">
+          <i class="bi bi-chevron-left"></i> Назад
+        </button>
+
+        <span class="px-3 py-2 fw-semibold text-secondary small bg-white rounded-pill shadow-sm">
+          {{ page() }} / {{ totalPages() }}
+        </span>
+
+        <button
+          (click)="nextPage()"
+          [disabled]="!hasNextPage()"
+          class="btn btn-outline-secondary rounded-pill px-4 py-2 d-flex align-items-center gap-1 shadow-sm">
+          Вперёд <i class="bi bi-chevron-right"></i>
+        </button>
+      </div>
+    }
+  }
+</div>

@@ -1,0 +1,61 @@
+.detail-banner {
+  height: 420px;
+  background-color: #0f172a;
+}
+
+.banner-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to top, rgba(15, 23, 42, 0.95) 0%, rgba(15, 23, 42, 0.4) 60%, rgba(0, 0, 0, 0.2) 100%);
+}
+
+.ingredient-item {
+  transition: all 0.15s ease-in-out;
+  border-radius: 8px;
+}
+
+.ingredient-item:hover {
+  background-color: #f8fafc;
+}
+
+.ingredient-item.checked {
+  background-color: #f1f5f9;
+}
+
+.ingredient-item.checked .ingredient-text {
+  text-decoration: line-through;
+  color: #94a3b8;
+}
+
+.step-card {
+  border-left: 3px solid #e25822;
+  transition: all 0.2s ease;
+}
+
+.step-card:hover {
+  background-color: #f8fafc;
+  transform: translateX(3px);
+}
+
+.step-number-badge {
+  background-color: #e25822;
+  color: white;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+@media (min-width: 992px) {
+  .border-end-lg {
+    border-right: 1px solid #e2e8f0;
+  }
+}
