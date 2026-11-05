@@ -1,0 +1,199 @@
+@baseUrl = http://localhost:5000
+
+### ============================================================
+### 1. АУТЕНТИФИКАЦИЯ И АВТОРИЗАЦИЯ
+### ============================================================
+
+### 1.1 Регистрация нового шеф-повара
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "gordon_ramsay",
+  "password": "Password123!"
+}
+
+### 1.2 Вход под тестовым пользователем-автором (chef)
+# @name loginChef
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "chef",
+  "password": "Chef123!"
+}
+
+### Сохраняем токен шефа для последующих запросов
+@chefToken = {{loginChef.response.body.token}}
+
+### 1.3 Вход под вторым пользователем (testuser - для проверки 403 Forbidden)
+# @name loginUser
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "password": "User123!"
+}
+
+### Сохраняем токен второго пользователя
+@userToken = {{loginUser.response.body.token}}
+
+### 1.4 Проверка профиля текущего пользователя (GET /api/auth/me)
+GET {{baseUrl}}/api/auth/me
+Authorization: Bearer {{chefToken}}
+
+### ============================================================
+### 2. СПРАВОЧНИКИ
+### ============================================================
+
+### 2.1 Получение списка национальных кухонь
+GET {{baseUrl}}/api/cuisines
+Accept: application/json
+
+### ============================================================
+### 3. РЕЦЕПТЫ: СПИСОК, ФИЛЬТРЫ, ПАГИНАЦИЯ (Доступно всем)
+### ============================================================
+
+### 3.1 Получение первой страницы рецептов (пагинация: page=1, pageSize=4)
+GET {{baseUrl}}/api/recipes?page=1&pageSize=4&sortBy=newest
+Accept: application/json
+
+### 3.2 Фильтрация по кухне (Итальянская = 1) и времени готовки (до 30 минут)
+GET {{baseUrl}}/api/recipes?cuisineId=1&maxTime=30
+Accept: application/json
+
+### 3.3 Поиск по ключевому слову
+GET {{baseUrl}}/api/recipes?search=сыр
+Accept: application/json
+
+### 3.4 Сортировка по времени приготовления (по возрастанию)
+GET {{baseUrl}}/api/recipes?sortBy=time_asc
+Accept: application/json
+
+### 3.5 Получение одного рецепта по ID (200 OK)
+GET {{baseUrl}}/api/recipes/1
+Accept: application/json
+
+### 3.6 Получение несуществующего рецепта (404 Not Found)
+GET {{baseUrl}}/api/recipes/9999
+Accept: application/json
+
+### ============================================================
+### 4. ПРОВЕРКА КОДОВ ОТВЕТА: 401, 400, 403, 201, 204
+### ============================================================
+
+### 4.1 Создание рецепта БЕЗ авторизации (Ожидается: 401 Unauthorized)
+POST {{baseUrl}}/api/recipes
+Content-Type: application/json
+
+{
+  "title": "Пицца Маргарита",
+  "cookingTimeMinutes": 30,
+  "servings": 3,
+  "ingredients": "Тесто, сыр моцарелла, базилик, томаты",
+  "steps": "Раскатать тесто, выложить начинку и выпекать 10 минут при 250 градусах.",
+  "cuisineId": 1
+}
+
+### 4.2 Создание с нарушением особого правила (Ожидается: 400 Bad Request с ProblemDetails)
+# «Если время больше 240 минут, шаги не короче 200 символов.»
+POST {{baseUrl}}/api/recipes
+Authorization: Bearer {{chefToken}}
+Content-Type: application/json
+
+{
+  "title": "Холодец праздничный",
+  "cookingTimeMinutes": 360,
+  "servings": 8,
+  "ingredients": "Говяжья голяшка, чеснок, лавровый лист, соль, перец",
+  "steps": "Варить на слабом огне очень долго.",
+  "cuisineId": 6
+}
+
+### 4.3 Успешное создание рецепта автором (Ожидается: 201 Created)
+# @name createRecipe
+POST {{baseUrl}}/api/recipes
+Authorization: Bearer {{chefToken}}
+Content-Type: application/json
+
+{
+  "title": "Домашняя пицца Маргарита",
+  "cookingTimeMinutes": 35,
+  "servings": 4,
+  "ingredients": "• Тесто для пиццы — 300 г\n• Томатный соус — 100 г\n• Сыр моцарелла — 200 г\n• Свежий базилик — несколько листочков\n• Оливковое масло — 1 ст. л.",
+  "steps": "1. Раскатайте основу для пиццы тонким слоем.\n2. Смажьте соусом, выложите кусочки моцареллы.\n3. Выпекайте в максимально разогретой духовке 8-10 минут.\n4. Украсьте свежим базиликом и сбрызните маслом.",
+  "cuisineId": 1
+}
+
+### Сохраняем ID созданного рецепта
+@createdRecipeId = {{createRecipe.response.body.id}}
+
+### 4.4 Попытка изменить рецепт НЕ автором (Ожидается: 403 Forbidden)
+# Пользователь testuser пытается изменить рецепт, созданный chef
+PUT {{baseUrl}}/api/recipes/{{createdRecipeId}}
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "title": "Взлом чужого рецепта",
+  "cookingTimeMinutes": 10,
+  "servings": 1,
+  "ingredients": "Ничего",
+  "steps": "Ничего",
+  "cuisineId": 1
+}
+
+### 4.5 Успешное изменение рецепта АВТОРОМ (Ожидается: 200 OK)
+PUT {{baseUrl}}/api/recipes/{{createdRecipeId}}
+Authorization: Bearer {{chefToken}}
+Content-Type: application/json
+
+{
+  "title": "Неаполитанская пицца Маргарита (Обновлено)",
+  "cookingTimeMinutes": 40,
+  "servings": 4,
+  "ingredients": "• Тесто для неаполитанской пиццы — 350 г\n• Протёртые томаты сан-марцано — 120 г\n• Сыр моцарелла ди будфала — 220 г\n• Листья свежего базилика\n• Оливковое масло Extra Virgin",
+  "steps": "1. Сформируйте руками круг с пышными бортиками.\n2. Выложите томаты и кусочки нежнейшей моцареллы.\n3. Выпекайте на камне для пиццы при температуре 280°C ровно 7 минут.\n4. Посыпьте листочками ароматного базилика.",
+  "cuisineId": 1
+}
+
+### 4.6 Попытка удалить рецепт НЕ автором (Ожидается: 403 Forbidden)
+DELETE {{baseUrl}}/api/recipes/{{createdRecipeId}}
+Authorization: Bearer {{userToken}}
+
+### 4.7 Успешное удаление рецепта АВТОРОМ (Ожидается: 204 No Content)
+DELETE {{baseUrl}}/api/recipes/{{createdRecipeId}}
+Authorization: Bearer {{chefToken}}
+
+### 4.8 Проверка удаления (Ожидается: 404 Not Found)
+GET {{baseUrl}}/api/recipes/{{createdRecipeId}}
+Accept: application/json
+
+### ============================================================
+### 5. ЗАГРУЗКА ФАЙЛА (Только автором, до 5 МБ, jpg/png/webp, имя Guid)
+### ============================================================
+
+### 5.1 Загрузка файла фото к рецепту ID=1 автором chef (200 OK)
+POST {{baseUrl}}/api/recipes/1/image
+Authorization: Bearer {{chefToken}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="carbonara_fresh.webp"
+Content-Type: image/webp
+
+< ./wwwroot/uploads/recipes/carbonara.webp
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### 5.2 Попытка загрузить фото к рецепту ID=1 НЕ автором (403 Forbidden)
+POST {{baseUrl}}/api/recipes/1/image
+Authorization: Bearer {{userToken}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="test.webp"
+Content-Type: image/webp
+
+< ./wwwroot/uploads/recipes/carbonara.webp
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
