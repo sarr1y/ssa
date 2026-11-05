@@ -1,7 +1,6 @@
 @echo off
 chcp 65001 > nul
 title Recipes Angular Client
-set "PATH=%LOCALAPPDATA%\Programs\nodejs;%PATH%"
 cd /d "%~dp0recipes-client"
 
 echo ===================================================
