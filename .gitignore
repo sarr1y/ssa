@@ -1,0 +1,25 @@
+# Build and Output
+bin/
+obj/
+dist/
+out/
+
+# Database files (EF Core SQLite)
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# Node & Angular
+node_modules/
+.angular/
+
+# User-specific & IDE
+.vscode/
+.idea/
+*.user
+*.suo
+.appdata/
+.dotnet_home/
+test_*.log
